@@ -216,6 +216,8 @@ namespace misas_thai_api
                 <h3>Delivery Details</h3>
                 <p><strong>Delivery Address:</strong> {order.DeliveryAddress}</p>
                 <p><strong>Delivery Date:</strong> {order.DeliveryDate}</p>
+                <p>Your delivery is scheduled for {order.DeliveryDate}, between 6–8 PM.</p>
+                <p>We'll finalize our routes after the order deadline and send you your exact delivery time shortly after.</p>
                 
                 <h3>Items Ordered</h3>
                 <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
@@ -277,6 +279,9 @@ Order Details:
 Delivery Details:
 - Delivery Address: {order.DeliveryAddress}
 - Delivery Date: {order.DeliveryDate}
+
+Your delivery is scheduled for Wednesday, October 8, between 6–8 PM.
+We'll finalize our routes after the order cutoff (Monday at 5 PM) and send you your exact delivery time shortly after.
 
 Items Ordered:
 {itemsText}
