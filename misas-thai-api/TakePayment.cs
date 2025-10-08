@@ -25,7 +25,6 @@ namespace misas_thai_api
             log.LogInformation("Processing payment request...");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            log.LogInformation($"Request body: {requestBody}");
             
             var orderRequest = JsonConvert.DeserializeObject<CreateOrderRequest>(requestBody);
             if (orderRequest == null)
@@ -64,8 +63,6 @@ namespace misas_thai_api
                     idempotencyKey: Guid.NewGuid().ToString(),
                     amountMoney: money
                 );
-
-                log.LogInformation($"Creating payment with amount: {money.Amount}, sourceId: {orderRequest.PaymentToken}");
 
                 var response = await client.PaymentsApi.CreatePaymentAsync(paymentRequest);
                 if (response.Payment != null && response.Payment.Status == "COMPLETED")
@@ -123,10 +120,6 @@ namespace misas_thai_api
                 var fromEmail = System.Environment.GetEnvironmentVariable("AzureCommunicationServices__FromEmail");
                 var replyToEmail = System.Environment.GetEnvironmentVariable("AzureCommunicationServices__ReplyToEmail");
                 
-                // Debug logging to see actual values
-                log.LogInformation($"Connection String: {(string.IsNullOrEmpty(connectionString) ? "null or empty" : connectionString.Length > 20 ? connectionString.Substring(0, 20) + "..." : connectionString)}");
-                log.LogInformation($"From Email: {fromEmail}");
-                log.LogInformation($"Reply-To Email: {replyToEmail}");
                 
                 if (string.IsNullOrEmpty(connectionString) || string.IsNullOrEmpty(fromEmail))
                 {
