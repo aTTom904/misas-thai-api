@@ -50,7 +50,7 @@ namespace misas_thai_api
                     .BearerAuthCredentials(
                         new BearerAuthModel.Builder(accessToken).Build()
                     )
-                    .Environment(Square.Environment.Production)
+                    .Environment(Square.Environment.Sandbox)
                     .Build();
 
                 var money = new Money(
