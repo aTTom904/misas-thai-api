@@ -172,7 +172,7 @@ namespace misas_thai_api
                     var restaurantMessage = new EmailMessage(
                         senderAddress: fromEmail,
                         recipientAddress: restaurantEmail,
-                        content: new EmailContent($"New Order - {orderNumber}")
+                        content: new EmailContent($"New Order from {order.CustomerName} - {orderNumber}")
                         {
                             PlainText = $"New order received from {order.CustomerName}\n\n" + plainTextContent,
                             Html = $"<h2>New Order Received</h2><p>From: {order.CustomerName}</p>" + htmlContent
