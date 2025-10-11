@@ -34,7 +34,8 @@ namespace misas_thai_api
                     Square = new
                     {
                         ApplicationId = Environment.GetEnvironmentVariable("Square__ApplicationId") ?? "",
-                        Environment = Environment.GetEnvironmentVariable("Square__Environment") ?? "sandbox"
+                        Environment = Environment.GetEnvironmentVariable("Square__Environment") ?? "sandbox",
+                        LocationId = Environment.GetEnvironmentVariable("Square__LocationId") ?? ""
                     },
                     GoogleMaps = new
                     {
