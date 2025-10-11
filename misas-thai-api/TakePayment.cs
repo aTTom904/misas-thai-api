@@ -206,6 +206,11 @@ namespace misas_thai_api
                 <p><strong>Order Number:</strong> {orderNumber}</p>
                 <p><strong>Total:</strong> ${order.Total:F2}</p>
                 
+                <h3>Customer Information</h3>
+                <p><strong>Name:</strong> {order.CustomerName}</p>
+                <p><strong>Email:</strong> {order.CustomerEmail}</p>
+                <p><strong>Phone:</strong> {order.CustomerPhone}</p>
+                
                 <h3>Delivery Details</h3>
                 <p><strong>Delivery Address:</strong> {order.DeliveryAddress}</p>
                 <p><strong>Delivery Date:</strong> {order.DeliveryDate}</p>
@@ -226,6 +231,10 @@ namespace misas_thai_api
                         {itemsHtml}
                     </tbody>
                 </table>
+                
+                {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
+                <h3>Additional Information</h3>
+                <p style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ee6900; margin: 20px 0;'>{order.AdditionalInformation}</p>" : "")}
                 
                 <h3>Marketing Preferences</h3>
                 <p><strong>Marketing Communications:</strong> {consentText}</p>
@@ -269,6 +278,11 @@ Order Details:
 - Order Number: {orderNumber}
 - Total: ${order.Total:F2}
 
+Customer Information:
+- Name: {order.CustomerName}
+- Email: {order.CustomerEmail}
+- Phone: {order.CustomerPhone}
+
 Delivery Details:
 - Delivery Address: {order.DeliveryAddress}
 - Delivery Date: {order.DeliveryDate}
@@ -279,7 +293,10 @@ We'll finalize our routes after the order cutoff (Monday at 5 PM) and send you y
 Items Ordered:
 {itemsText}
 
-Marketing Preferences:
+{(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"Additional Information:
+{order.AdditionalInformation}
+
+" : "")}Marketing Preferences:
 - Marketing Communications: {consentText}
 {(order.ConsentToUpdates ? "You can unsubscribe at any time. Standard message and data rates may apply for text messages." : "")}
 
@@ -308,6 +325,7 @@ Green Cove Springs, FL 32043
             public string DeliveryDate { get; set; } = string.Empty;
             public decimal Total { get; set; }
             public string PaymentToken { get; set; } = string.Empty;
+            public string AdditionalInformation { get; set; } = string.Empty;
             public List<OrderItemRequest> Items { get; set; } = new();
         }
 
