@@ -46,11 +46,12 @@ namespace misas_thai_api
 
             try
             {
+                var SquareEnvironment = System.Environment.GetEnvironmentVariable("Square__Environment").ToLower();
                 var client = new SquareClient.Builder()
                     .BearerAuthCredentials(
                         new BearerAuthModel.Builder(accessToken).Build()
                     )
-                    .Environment(Square.Environment.Production)
+                    .Environment(SquareEnvironment == "production" ? Square.Environment.Production : Square.Environment.Sandbox)
                     .Build();
 
                 var money = new Money(
