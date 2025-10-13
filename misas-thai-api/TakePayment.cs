@@ -190,7 +190,10 @@ namespace misas_thai_api
         private static string CreateOrderEmailHtml(CreateOrderRequest order, string orderNumber)
         {
             var itemsHtml = string.Join("", order.Items.Select(item => 
-                $"<tr><td>{item.ItemName}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>"));
+            {
+                var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
+                return $"<tr><td>{item.ItemName}{servesText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
+            }));
 
             var consentText = order.ConsentToUpdates 
                 ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
@@ -206,6 +209,7 @@ namespace misas_thai_api
                 <h3>Order Details</h3>
                 <p><strong>Order Number:</strong> {orderNumber}</p>
                 <p><strong>Total:</strong> ${order.Total:F2}</p>
+                <p><strong>Tip:</strong> ${order.TipAmount:F2}</p>
                 
                 <h3>Customer Information</h3>
                 <p><strong>Name:</strong> {order.CustomerName}</p>
@@ -232,6 +236,7 @@ namespace misas_thai_api
                         {itemsHtml}
                     </tbody>
                 </table>
+                <div style='margin: 10px 0;'><strong>Tip:</strong> ${order.TipAmount:F2}</div>
                 
                 {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
                 <h3>Additional Information</h3>
@@ -262,7 +267,10 @@ namespace misas_thai_api
         private static string CreateOrderEmailText(CreateOrderRequest order, string orderNumber)
         {
             var itemsText = string.Join("\n", order.Items.Select(item => 
-                $"- {item.ItemName} (Qty: {item.Quantity}) - ${item.Price:F2} each = ${(item.Price * item.Quantity):F2}"));
+            {
+                var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
+                return $"- {item.ItemName}{servesText} (Qty: {item.Quantity}) - ${item.Price:F2} each = ${(item.Price * item.Quantity):F2}";
+            }));
 
             var consentText = order.ConsentToUpdates 
                 ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
@@ -278,6 +286,7 @@ Your order has been confirmed and payment processed successfully.
 Order Details:
 - Order Number: {orderNumber}
 - Total: ${order.Total:F2}
+- Tip: ${order.TipAmount:F2}
 
 Customer Information:
 - Name: {order.CustomerName}
@@ -293,6 +302,8 @@ We'll finalize our routes after the order cutoff (Monday at 5 PM) and send you y
 
 Items Ordered:
 {itemsText}
+
+Tip: ${order.TipAmount:F2}
 
 {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"Additional Information:
 {order.AdditionalInformation}
@@ -328,6 +339,7 @@ Green Cove Springs, FL 32043
             public string PaymentToken { get; set; } = string.Empty;
             public string AdditionalInformation { get; set; } = string.Empty;
             public List<OrderItemRequest> Items { get; set; } = new();
+            public decimal TipAmount { get; set; }
         }
 
         public class OrderItemRequest
