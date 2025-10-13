@@ -189,11 +189,36 @@ namespace misas_thai_api
 
         private static string CreateOrderEmailHtml(CreateOrderRequest order, string orderNumber)
         {
-            var itemsHtml = string.Join("", order.Items.Select(item => 
+
+            var itemsHtml = string.Empty;
+            foreach (var item in order.Items)
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
-                return $"<tr><td>{item.ItemName}{servesText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
-            }));
+                itemsHtml += $"<tr><td>{item.ItemName}{servesText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
+
+                // Upgrades as line items
+                if (item.UpgradePhadThai24Qty > 0)
+                {
+                    var upgrade24Price = 9m;
+                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
+                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (24oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
+                }
+                if (item.UpgradePhadThai48Qty > 0)
+                {
+                    var upgrade48Price = 18m;
+                    var upgrade48Total = item.UpgradePhadThai48Qty * upgrade48Price;
+                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (48oz)</td><td>{item.UpgradePhadThai48Qty}</td><td>${upgrade48Price:F2}</td><td>${upgrade48Total:F2}</td></tr>";
+                }
+            }
+
+            // Add tip as a line item
+            if (order.TipAmount > 0)
+            {
+                itemsHtml += $"<tr><td><strong>Tip</strong></td><td></td><td></td><td><strong>${order.TipAmount:F2}</strong></td></tr>";
+            }
+
+            // Grand total is order.Total (already includes tip)
+            var grandTotal = order.Total;
 
             var consentText = order.ConsentToUpdates 
                 ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
@@ -206,11 +231,6 @@ namespace misas_thai_api
                 <p>Hi {order.CustomerName},</p>
                 <p>Your order has been confirmed and payment processed successfully.</p>
                 
-                <h3>Order Details</h3>
-                <p><strong>Order Number:</strong> {orderNumber}</p>
-                <p><strong>Total:</strong> ${order.Total:F2}</p>
-                <p><strong>Tip:</strong> ${order.TipAmount:F2}</p>
-                
                 <h3>Customer Information</h3>
                 <p><strong>Name:</strong> {order.CustomerName}</p>
                 <p><strong>Email:</strong> {order.CustomerEmail}</p>
@@ -222,7 +242,8 @@ namespace misas_thai_api
                 <p>Your delivery is scheduled for {order.DeliveryDate}, between 6–8 PM.</p>
                 <p>We'll finalize our routes after the order deadline and send you your exact delivery time shortly after.</p>
                 
-                <h3>Items Ordered</h3>
+                <h3>Order Details</h3>
+                <p><strong>Order Number:</strong> {orderNumber}</p>
                 <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
                     <thead>
                         <tr style='background-color: #f8f9fa;'>
@@ -234,9 +255,12 @@ namespace misas_thai_api
                     </thead>
                     <tbody>
                         {itemsHtml}
+                        <tr style='background-color: #f8f9fa;'>
+                            <td colspan='3' style='text-align: right; font-weight: bold;'>Total: </td>
+                            <td style='font-weight: bold;'>${grandTotal:F2}</td>
+                        </tr>
                     </tbody>
                 </table>
-                <div style='margin: 10px 0;'><strong>Tip:</strong> ${order.TipAmount:F2}</div>
                 
                 {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
                 <h3>Additional Information</h3>
@@ -266,11 +290,39 @@ namespace misas_thai_api
 
         private static string CreateOrderEmailText(CreateOrderRequest order, string orderNumber)
         {
-            var itemsText = string.Join("\n", order.Items.Select(item => 
+
+            var itemsLines = new System.Collections.Generic.List<string>();
+            foreach (var item in order.Items)
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
-                return $"- {item.ItemName}{servesText} (Qty: {item.Quantity}) - ${item.Price:F2} each = ${(item.Price * item.Quantity):F2}";
-            }));
+                itemsLines.Add($"- {item.ItemName}{servesText} (Qty: {item.Quantity}) - ${item.Price:F2} each = ${(item.Price * item.Quantity):F2}");
+
+                // Upgrades as line items
+                if (item.UpgradePhadThai24Qty > 0)
+                {
+                    var upgrade24Price = 9m;
+                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
+                    itemsLines.Add($"  Upgrade: Pad Thai (24oz) x {item.UpgradePhadThai24Qty} @ ${upgrade24Price:F2} each = ${upgrade24Total:F2}");
+                }
+                if (item.UpgradePhadThai48Qty > 0)
+                {
+                    var upgrade48Price = 18m;
+                    var upgrade48Total = item.UpgradePhadThai48Qty * upgrade48Price;
+                    itemsLines.Add($"  Upgrade: Pad Thai (48oz) x {item.UpgradePhadThai48Qty} @ ${upgrade48Price:F2} each = ${upgrade48Total:F2}");
+                }
+            }
+
+            // Add tip as a line item if present
+            if (order.TipAmount > 0)
+            {
+                itemsLines.Add($"- Tip - ${order.TipAmount:F2}");
+            }
+
+            // Grand total is order.Total (already includes tip)
+            var grandTotal = order.Total;
+            itemsLines.Add($"Grand Total: ${grandTotal:F2}");
+
+            var itemsText = string.Join("\n", itemsLines);
 
             var consentText = order.ConsentToUpdates 
                 ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
@@ -302,8 +354,6 @@ We'll finalize our routes after the order cutoff (Monday at 5 PM) and send you y
 
 Items Ordered:
 {itemsText}
-
-Tip: ${order.TipAmount:F2}
 
 {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"Additional Information:
 {order.AdditionalInformation}
@@ -348,6 +398,9 @@ Green Cove Springs, FL 32043
             public string Category { get; set; } = string.Empty;
             public decimal Price { get; set; }
             public int Quantity { get; set; }
+            public int? SelectedServes { get; set; }
+            public int UpgradePhadThai24Qty { get; set; }
+            public int UpgradePhadThai48Qty { get; set; }
         }
     }
 }
