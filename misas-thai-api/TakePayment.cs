@@ -195,97 +195,68 @@ namespace misas_thai_api
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
                 itemsHtml += $"<tr><td>{item.ItemName}{servesText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
-
-                // Upgrades as line items
-                if (item.UpgradePhadThai24Qty > 0)
-                {
-                    var upgrade24Price = 9m;
-                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
-                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (24oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
-                }
                 if (item.UpgradePhadThai48Qty > 0)
                 {
                     var upgrade48Price = 18m;
                     var upgrade48Total = item.UpgradePhadThai48Qty * upgrade48Price;
-                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (48oz)</td><td>{item.UpgradePhadThai48Qty}</td><td>${upgrade48Price:F2}</td><td>${upgrade48Total:F2}</td></tr>";
+                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (48 oz)</td><td>{item.UpgradePhadThai48Qty}</td><td>${upgrade48Price:F2}</td><td>${upgrade48Total:F2}</td></tr>";
+                }
+                if (item.UpgradePhadThai24Qty > 0)
+                {
+                    var upgrade24Price = 9m;
+                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
+                    itemsHtml += $"<tr><td>Upgrade: Pad Thai (24 oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
                 }
             }
-
-            // Add tip as a line item
-            if (order.TipAmount > 0)
-            {
-                itemsHtml += $"<tr><td><strong>Tip</strong></td><td></td><td></td><td><strong>${order.TipAmount:F2}</strong></td></tr>";
-            }
-
-            // Grand total is order.Total (already includes tip)
             var grandTotal = order.Total;
-
-            var consentText = order.ConsentToUpdates 
-                ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
-                : "No - You will not receive promotional communications.";
-
             return $@"
-            <html>
-            <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                <h2 style='color: #ee6900;'>Thank you for your order!</h2>
-                <p>Hi {order.CustomerName},</p>
-                <p>Your order has been confirmed and payment processed successfully.</p>
-                
-                <h3>Customer Information</h3>
-                <p><strong>Name:</strong> {order.CustomerName}</p>
-                <p><strong>Email:</strong> {order.CustomerEmail}</p>
-                <p><strong>Phone:</strong> {order.CustomerPhone}</p>
-                
-                <h3>Delivery Details</h3>
-                <p><strong>Delivery Address:</strong> {order.DeliveryAddress}</p>
-                <p><strong>Delivery Date:</strong> {order.DeliveryDate}</p>
-                <p>Your delivery is scheduled for {order.DeliveryDate}, between 6–8 PM.</p>
-                <p>We'll finalize our routes after the order deadline and send you your exact delivery time shortly after.</p>
-                
-                <h3>Order Details</h3>
-                <p><strong>Order Number:</strong> {orderNumber}</p>
-                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
-                    <thead>
-                        <tr style='background-color: #f8f9fa;'>
-                            <th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Item</th>
-                            <th style='border: 1px solid #ddd; padding: 8px; text-align: center;'>Qty</th>
-                            <th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Price</th>
-                            <th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {itemsHtml}
-                        <tr style='background-color: #f8f9fa;'>
-                            <td colspan='3' style='text-align: right; font-weight: bold;'>Total: </td>
-                            <td style='font-weight: bold;'>${grandTotal:F2}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
-                <h3>Additional Information</h3>
-                <p style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ee6900; margin: 20px 0;'>{order.AdditionalInformation}</p>" : "")}
-                
-                <h3>Marketing Preferences</h3>
-                <p><strong>Marketing Communications:</strong> {consentText}</p>
-                {(order.ConsentToUpdates ? "<p style='font-size: 12px; color: #666;'><em>You can unsubscribe at any time. Standard message and data rates may apply for text messages.</em></p>" : "")}
-                
-                <p>We'll be in touch with delivery updates!</p>
-                
-                <h3>Questions or Comments?</h3>
-                <p>If you have any questions or comments about your order, please don't hesitate to reach out to us at <a href='mailto:msthaistreetcuisine@gmail.com' style='color: #ee6900;'>msthaistreetcuisine@gmail.com</a>. We're here to help!</p>
-                
-                <p>Thank you for choosing Misa's Thai Street Cuisine!</p>
-                
-                <hr style='margin: 30px 0;'>
-                <p style='font-size: 12px; color: #666;'>
-                    Misa's Thai Street Cuisine<br>
-                    1301 N Orange Ave, Suite 102<br>
-                    Green Cove Springs, FL 32043<br>
-                    904.315.4884
-                </p>
-            </body>
-            </html>";
+<html>
+<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+    <p>Hi {order.CustomerName},</p>
+    <p>Thank you so much for your order — we’re excited to cook for you! Your payment has been processed successfully, and your order is confirmed.</p>
+    <h3>🚗 Delivery Details</h3>
+    <p><strong>Delivery Address:</strong> {order.DeliveryAddress}</p>
+    <p><strong>Delivery Date:</strong> {order.DeliveryDate}</p>
+    <p><strong>Estimated Window:</strong> 5:00 PM – 7:00 PM</p>
+    <p>We’ll finalize our routes after the order deadline and text you your exact delivery time shortly after.</p>
+    <h3>📦 Order Summary</h3>
+    <p><strong>Order #:</strong> {orderNumber}</p>
+    <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+        <thead>
+            <tr style='background-color: #f8f9fa;'>
+                <th style='border: 1px solid #ddd; padding: 8px; text-align: left;'>Item</th>
+                <th style='border: 1px solid #ddd; padding: 8px; text-align: center;'>Qty</th>
+                <th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Price</th>
+                <th style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {itemsHtml}
+            <tr style='background-color: #f8f9fa;'>
+                <td colspan='3' style='text-align: right; font-weight: bold;'>Total: </td>
+                <td style='font-weight: bold;'>${grandTotal:F2}</td>
+            </tr>
+        </tbody>
+    </table>
+    {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
+    <h3>Additional Information</h3>
+    <p style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ee6900; margin: 20px 0;'>{order.AdditionalInformation}</p>" : "")
+    }
+    <h3>👤 Customer Info</h3>
+    <p><strong>Name:</strong> {order.CustomerName}<br/>
+    <strong>Email:</strong> {order.CustomerEmail}<br/>
+    <strong>Phone:</strong> {order.CustomerPhone}</p>
+    <h3>💬 Questions or Changes?</h3>
+    <p>We’re happy to help! Just email us at msthaistreetcuisine@gmail.com or text us at 904-315-4884.</p>
+    <p>We can’t wait for you to enjoy your Thai favorites — made fresh with authentic herbs and spices! 🧡</p>
+    <p>Warmly,<br/>
+    Misa’s Thai Street Cuisine<br/>
+    1301 N Orange Ave, Suite 102<br/>
+    Green Cove Springs, FL 32043<br/>
+    msthaistreetcuisine@gmail.com<br/>
+    904-315-4884</p>
+</body>
+</html>";
         }
 
         private static string CreateOrderEmailText(CreateOrderRequest order, string orderNumber)
@@ -295,85 +266,62 @@ namespace misas_thai_api
             foreach (var item in order.Items)
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
-                itemsLines.Add($"- {item.ItemName}{servesText} (Qty: {item.Quantity}) - ${item.Price:F2} each = ${(item.Price * item.Quantity):F2}");
-
-                // Upgrades as line items
-                if (item.UpgradePhadThai24Qty > 0)
-                {
-                    var upgrade24Price = 9m;
-                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
-                    itemsLines.Add($"  Upgrade: Pad Thai (24oz) x {item.UpgradePhadThai24Qty} @ ${upgrade24Price:F2} each = ${upgrade24Total:F2}");
-                }
+                itemsLines.Add($"{item.ItemName}{servesText}\t{item.Quantity}\t${item.Price:F2}\t${(item.Price * item.Quantity):F2}");
                 if (item.UpgradePhadThai48Qty > 0)
                 {
                     var upgrade48Price = 18m;
                     var upgrade48Total = item.UpgradePhadThai48Qty * upgrade48Price;
-                    itemsLines.Add($"  Upgrade: Pad Thai (48oz) x {item.UpgradePhadThai48Qty} @ ${upgrade48Price:F2} each = ${upgrade48Total:F2}");
+                    itemsLines.Add($"Upgrade: Pad Thai (48 oz)\t{item.UpgradePhadThai48Qty}\t${upgrade48Price:F2}\t${upgrade48Total:F2}");
+                }
+                if (item.UpgradePhadThai24Qty > 0)
+                {
+                    var upgrade24Price = 9m;
+                    var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
+                    itemsLines.Add($"Upgrade: Pad Thai (24 oz)\t{item.UpgradePhadThai24Qty}\t${upgrade24Price:F2}\t${upgrade24Total:F2}");
                 }
             }
-
-            // Add tip as a line item if present
-            if (order.TipAmount > 0)
-            {
-                itemsLines.Add($"- Tip - ${order.TipAmount:F2}");
-            }
-
-            // Grand total is order.Total (already includes tip)
             var grandTotal = order.Total;
-            itemsLines.Add($"Grand Total: ${grandTotal:F2}");
-
             var itemsText = string.Join("\n", itemsLines);
+            return $@"Hi {order.CustomerName},
 
-            var consentText = order.ConsentToUpdates 
-                ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
-                : "No - You will not receive promotional communications.";
+Thank you so much for your order — we’re excited to cook for you! Your payment has been processed successfully, and your order is confirmed.
 
-            return $@"
-Thank you for your order!
+🚗 Delivery Details
+Delivery Address: {order.DeliveryAddress}
+Delivery Date: {order.DeliveryDate}
+Estimated Window: 5:00 PM – 7:00 PM
 
-Hi {order.CustomerName},
+We’ll finalize our routes after the order deadline and text you your exact delivery time shortly after.
 
-Your order has been confirmed and payment processed successfully.
-
-Order Details:
-- Order Number: {orderNumber}
-- Total: ${order.Total:F2}
-- Tip: ${order.TipAmount:F2}
-
-Customer Information:
-- Name: {order.CustomerName}
-- Email: {order.CustomerEmail}
-- Phone: {order.CustomerPhone}
-
-Delivery Details:
-- Delivery Address: {order.DeliveryAddress}
-- Delivery Date: {order.DeliveryDate}
-
-Your delivery is scheduled for Wednesday, October 8, between 6–8 PM.
-We'll finalize our routes after the order cutoff (Monday at 5 PM) and send you your exact delivery time shortly after.
-
-Items Ordered:
+📦 Order Summary
+Order #: {orderNumber}
+Item\tQty\tPrice\tTotal
 {itemsText}
+Total: ${grandTotal:F2}
 
-{(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"Additional Information:
-{order.AdditionalInformation}
+{(string.IsNullOrEmpty(order.AdditionalInformation) ? "" :
+    "------------------------------\n" +
+    "ADDITIONAL INFORMATION PROVIDED BY YOU:\n" +
+    order.AdditionalInformation +
+    "\n------------------------------\n")}
 
-" : "")}Marketing Preferences:
-- Marketing Communications: {consentText}
-{(order.ConsentToUpdates ? "You can unsubscribe at any time. Standard message and data rates may apply for text messages." : "")}
+👤 Customer Info
+Name: {order.CustomerName}
+Email: {order.CustomerEmail}
+Phone: {order.CustomerPhone}
 
-We'll be in touch with delivery updates!
+💬 Questions or Changes?
+We’re happy to help! Just email us at msthaistreetcuisine@gmail.com or text us at 904-315-4884.
 
-Questions or Comments?
-If you have any questions or comments about your order, please don't hesitate to reach out to us at msthaistreetcuisine@gmail.com. We're here to help!
+We can’t wait for you to enjoy your Thai favorites — made fresh with authentic herbs and spices! 🧡
 
-Thank you for choosing Misa's Thai Street Cuisine!
-
----
-Misa's Thai Street Cuisine
+Warmly,
+Misa’s Thai Street Cuisine
 1301 N Orange Ave, Suite 102
 Green Cove Springs, FL 32043
-904.315.4884";
+msthaistreetcuisine@gmail.com
+904-315-4884
+";
         }
 
         // Model for deserializing order request
