@@ -209,6 +209,15 @@ namespace misas_thai_api
                 }
             }
 
+
+            // Sales tax row
+            var salesTaxHtml = string.Empty;
+            if (order.SalesTax > 0)
+            {
+                salesTaxHtml = $"<tr><td colspan='3' style='text-align: right;'>Sales Tax: </td><td>${order.SalesTax:F2}</td></tr>";
+            }
+
+            // Tip row
             var tipHtml = string.Empty;
             if (order.TipAmount > 0)
             {
@@ -268,6 +277,7 @@ namespace misas_thai_api
         </thead>
         <tbody>
             {itemsHtml}
+            {salesTaxHtml}
             {tipHtml}
             <tr style='background-color: #f8f9fa;'>
                 <td colspan='3' style='text-align: right; font-weight: bold;'>Total: </td>
@@ -321,6 +331,13 @@ namespace misas_thai_api
                 }
             }
 
+
+            // Sales tax line
+            if (order.SalesTax > 0)
+            {
+                itemsLines.Add($"Sales Tax\t\t\t${order.SalesTax:F2}");
+            }
+            // Tip line
             if (order.TipAmount > 0)
             {
                 itemsLines.Add($"Tip\t\t\t${order.TipAmount:F2}");
