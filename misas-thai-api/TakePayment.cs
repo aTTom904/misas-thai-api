@@ -209,9 +209,16 @@ namespace misas_thai_api
                 }
             }
             var grandTotal = order.Total;
+
+            var consentText = order.ConsentToUpdates 
+            ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
+            : "No - You will not receive promotional communications.";
             return $@"
 <html>
 <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+    <div style='font-size: 2.2em; color: #ee6900; font-weight: bold; text-align: center; margin-top: 30px; margin-bottom: 20px;'>
+        Thank you for your order!
+    </div>
     <p>Hi {order.CustomerName},</p>
     <p>Thank you so much for your order — we’re excited to cook for you! Your payment has been processed successfully, and your order is confirmed.</p>
     <h3>🚗 Delivery Details</h3>
@@ -238,14 +245,17 @@ namespace misas_thai_api
             </tr>
         </tbody>
     </table>
-    {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
-    <h3>Additional Information</h3>
-    <p style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ee6900; margin: 20px 0;'>{order.AdditionalInformation}</p>" : "")
-    }
+    <h3>📣 Marketing Preferences</h3>
+    <p><strong> Marketing Communications:</strong> {consentText}</p>
+    {(order.ConsentToUpdates ? "<p style='font-size: 12px; color: #666;'><em>You can unsubscribe at any time. Standard message and data rates may apply for text messages.</em></p>" : "")}
     <h3>👤 Customer Info</h3>
     <p><strong>Name:</strong> {order.CustomerName}<br/>
     <strong>Email:</strong> {order.CustomerEmail}<br/>
     <strong>Phone:</strong> {order.CustomerPhone}</p>
+    {(!string.IsNullOrEmpty(order.AdditionalInformation) ? $@"
+    <h3>Additional Information</h3>
+    <p style='background-color: #f8f9fa; padding: 15px; border-left: 4px solid #ee6900; margin: 20px 0;'>{order.AdditionalInformation}</p>" : "")
+    }
     <h3>💬 Questions or Changes?</h3>
     <p>We’re happy to help! Just email us at msthaistreetcuisine@gmail.com or text us at 904-315-4884.</p>
     <p>We can’t wait for you to enjoy your Thai favorites — made fresh with authentic herbs and spices! 🧡</p>
@@ -282,7 +292,16 @@ namespace misas_thai_api
             }
             var grandTotal = order.Total;
             var itemsText = string.Join("\n", itemsLines);
-            return $@"Hi {order.CustomerName},
+
+            var consentText = order.ConsentToUpdates 
+            ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
+            : "No - You will not receive promotional communications.";
+            return $@"
+==============================
+THANK YOU FOR YOUR ORDER
+==============================
+
+Hi {order.CustomerName},
 
 Thank you so much for your order — we’re excited to cook for you! Your payment has been processed successfully, and your order is confirmed.
 
@@ -304,6 +323,10 @@ Total: ${grandTotal:F2}
     "ADDITIONAL INFORMATION PROVIDED BY YOU:\n" +
     order.AdditionalInformation +
     "\n------------------------------\n")}
+
+Marketing Preferences
+Marketing Communications: {consentText}
+{(order.ConsentToUpdates ? "You can unsubscribe at any time. Standard message and data rates may apply for text messages.\n" : "")}
 
 👤 Customer Info
 Name: {order.CustomerName}
