@@ -213,6 +213,28 @@ namespace misas_thai_api
             var consentText = order.ConsentToUpdates 
             ? "Yes - You will receive promotional emails and text messages about special offers, new menu items, and restaurant updates." 
             : "No - You will not receive promotional communications.";
+            // Parse delivery date for calendar event (assume format MM/dd/yyyy or yyyy-MM-dd)
+            DateTime deliveryDate;
+            string deliveryDateString = order.DeliveryDate;
+            if (!DateTime.TryParse(order.DeliveryDate, out deliveryDate))
+            {
+                deliveryDate = DateTime.Now.Date;
+            }
+            // Delivery window: 5:00 PM – 7:00 PM
+            var start = new DateTime(deliveryDate.Year, deliveryDate.Month, deliveryDate.Day, 17, 0, 0);
+            var end = new DateTime(deliveryDate.Year, deliveryDate.Month, deliveryDate.Day, 19, 0, 0);
+            string startUtc = start.ToUniversalTime().ToString("yyyyMMdd'T'HHmmss'Z'");
+            string endUtc = end.ToUniversalTime().ToString("yyyyMMdd'T'HHmmss'Z'");
+            string calendarTitle = Uri.EscapeDataString("Misa's Thai Delivery");
+            string calendarDetails = Uri.EscapeDataString($"Order #: {orderNumber} | Address: {order.DeliveryAddress}");
+            string calendarLocation = Uri.EscapeDataString(order.DeliveryAddress);
+            string googleCalUrl = $"https://www.google.com/calendar/render?action=TEMPLATE&text={calendarTitle}&dates={startUtc}/{endUtc}&details={calendarDetails}&location={calendarLocation}&sf=true&output=xml";
+
+            // ICS file content (RFC 5545)
+            string icsContent = $"BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Misa's Thai Street Cuisine//EN\r\nBEGIN:VEVENT\r\nUID:{Guid.NewGuid()}\r\nDTSTAMP:{DateTime.UtcNow:yyyyMMdd'T'HHmmss'Z'}\r\nDTSTART:{startUtc}\r\nDTEND:{endUtc}\r\nSUMMARY:Misa's Thai Delivery\r\nDESCRIPTION:Order #: {orderNumber} | Address: {order.DeliveryAddress}\r\nLOCATION:{order.DeliveryAddress}\r\nEND:VEVENT\r\nEND:VCALENDAR";
+            string icsBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(icsContent));
+            string icsDataUrl = $"data:text/calendar;base64,{icsBase64}";
+
             return $@"
 <html>
 <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
@@ -223,7 +245,8 @@ namespace misas_thai_api
     <p>Thank you so much for your order — we’re excited to cook for you! Your payment has been processed successfully, and your order is confirmed.</p>
     <h3>🚗 Delivery Details</h3>
     <p><strong>Delivery Address:</strong> {order.DeliveryAddress}</p>
-    <p><strong>Delivery Date:</strong> {order.DeliveryDate}</p>
+    <p><strong>Delivery Date:</strong> <a href='{googleCalUrl}' style='color:#1976d2; text-decoration:underline; font-weight:600;' target='_blank' title='Add to Google Calendar'>{order.DeliveryDate} 📅
+    </a></p>
     <p><strong>Estimated Window:</strong> 5:00 PM – 7:00 PM</p>
     <p>We’ll finalize our routes after the order deadline and text you your exact delivery time shortly after.</p>
     <h3>📦 Order Summary</h3>
