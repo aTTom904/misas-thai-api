@@ -109,7 +109,6 @@ namespace misas_thai_api
             }
         }
 
-        // DTOs
         private class CreateOrderInput
         {
             public string OrderNumber { get; set; } = string.Empty;

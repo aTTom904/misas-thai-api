@@ -109,7 +109,6 @@ namespace misas_thai_api
             }
         }
 
-        // DTOs
         private class CreateCustomerInput
         {
             public string Name { get; set; } = string.Empty;

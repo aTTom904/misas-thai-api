@@ -109,7 +109,6 @@ namespace misas_thai_api
             }
         }
 
-        // DTOs
         private class CreateMenuItemInput
         {
             public string ItemName { get; set; } = string.Empty;

@@ -109,7 +109,6 @@ namespace misas_thai_api
             }
         }
 
-        // DTOs
         private class CreateAddressVerificationInput
         {
             public string Address { get; set; } = string.Empty;
