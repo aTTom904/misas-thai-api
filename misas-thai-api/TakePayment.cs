@@ -208,6 +208,12 @@ namespace misas_thai_api
                     itemsHtml += $"<tr><td>Upgrade: Pad Thai (24 oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
                 }
             }
+
+            var tipHtml = string.Empty;
+            if (order.TipAmount > 0)
+            {
+                tipHtml = $"<tr><td colspan='3' style='text-align: right;'>Tip: </td><td>${order.TipAmount:F2}</td></tr>";
+            }
             var grandTotal = order.Total;
 
             var consentText = order.ConsentToUpdates 
@@ -248,7 +254,7 @@ namespace misas_thai_api
     <p><strong>Delivery Date:</strong> <a href='{googleCalUrl}' style='color:#1976d2; text-decoration:underline; font-weight:600;' target='_blank' title='Add to Google Calendar'>{order.DeliveryDate} 📅
     </a></p>
     <p><strong>Estimated Window:</strong> 5:00 PM – 7:00 PM</p>
-    <p>We’ll finalize our routes after the order deadline and text you your exact delivery time shortly after.</p>
+    <p>We’ll finalize our routes after the order deadline and text you a more precise delivery window shortly after.</p>
     <h3>📦 Order Summary</h3>
     <p><strong>Order #:</strong> {orderNumber}</p>
     <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
@@ -262,6 +268,7 @@ namespace misas_thai_api
         </thead>
         <tbody>
             {itemsHtml}
+            {tipHtml}
             <tr style='background-color: #f8f9fa;'>
                 <td colspan='3' style='text-align: right; font-weight: bold;'>Total: </td>
                 <td style='font-weight: bold;'>${grandTotal:F2}</td>
@@ -313,6 +320,11 @@ namespace misas_thai_api
                     itemsLines.Add($"Upgrade: Pad Thai (24 oz)\t{item.UpgradePhadThai24Qty}\t${upgrade24Price:F2}\t${upgrade24Total:F2}");
                 }
             }
+
+            if (order.TipAmount > 0)
+            {
+                itemsLines.Add($"Tip\t\t\t${order.TipAmount:F2}");
+            }
             var grandTotal = order.Total;
             var itemsText = string.Join("\n", itemsLines);
 
@@ -333,7 +345,7 @@ Delivery Address: {order.DeliveryAddress}
 Delivery Date: {order.DeliveryDate}
 Estimated Window: 5:00 PM – 7:00 PM
 
-We’ll finalize our routes after the order deadline and text you your exact delivery time shortly after.
+We’ll finalize our routes after the order deadline and text you a more precise delivery window shortly after.
 
 📦 Order Summary
 Order #: {orderNumber}
