@@ -194,7 +194,8 @@ namespace misas_thai_api
             foreach (var item in order.Items)
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
-                itemsHtml += $"<tr><td>{item.ItemName}{servesText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
+                var sizeText = !string.IsNullOrEmpty(item.SelectedSize) ? $" ({item.SelectedSize} Tray)" : "";
+                itemsHtml += $"<tr><td>{item.ItemName}{servesText}{sizeText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
                 if (item.UpgradePhadThai48Qty > 0)
                 {
                     var upgrade48Price = 18m;
@@ -206,6 +207,14 @@ namespace misas_thai_api
                     var upgrade24Price = 9m;
                     var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
                     itemsHtml += $"<tr><td>Upgrade: Pad Thai (24 oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
+                }
+                if (item.AddOnQty > 0)
+                {
+                    var addOnPrice = item.SelectedSize == "Half" ? 15m : 25m;
+                    var addOnSize = item.SelectedSize == "Half" ? "16oz" : "32oz";
+                    var addOnName = item.ItemName == "Sai Ua Sausage" ? "Prik Noom Sauce" : "Jao Sauce";
+                    var addOnTotal = item.AddOnQty * addOnPrice;
+                    itemsHtml += $"<tr><td>Add-on: {addOnName} ({addOnSize})</td><td>{item.AddOnQty}</td><td>${addOnPrice:F2}</td><td>${addOnTotal:F2}</td></tr>";
                 }
             }
 
@@ -316,7 +325,8 @@ namespace misas_thai_api
             foreach (var item in order.Items)
             {
                 var servesText = item.SelectedServes.HasValue ? $" (Serves {item.SelectedServes.Value})" : "";
-                itemsLines.Add($"{item.ItemName}{servesText}\t{item.Quantity}\t${item.Price:F2}\t${(item.Price * item.Quantity):F2}");
+                var sizeText = !string.IsNullOrEmpty(item.SelectedSize) ? $" ({item.SelectedSize} Tray)" : "";
+                itemsLines.Add($"{item.ItemName}{servesText}{sizeText}\t{item.Quantity}\t${item.Price:F2}\t${(item.Price * item.Quantity):F2}");
                 if (item.UpgradePhadThai48Qty > 0)
                 {
                     var upgrade48Price = 18m;
@@ -328,6 +338,14 @@ namespace misas_thai_api
                     var upgrade24Price = 9m;
                     var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
                     itemsLines.Add($"Upgrade: Pad Thai (24 oz)\t{item.UpgradePhadThai24Qty}\t${upgrade24Price:F2}\t${upgrade24Total:F2}");
+                }
+                if (item.AddOnQty > 0)
+                {
+                    var addOnPrice = item.SelectedSize == "Half" ? 15m : 25m;
+                    var addOnSize = item.SelectedSize == "Half" ? "16oz" : "32oz";
+                    var addOnName = item.ItemName == "Sai Ua Sausage" ? "Prik Noom Sauce" : "Jao Sauce";
+                    var addOnTotal = item.AddOnQty * addOnPrice;
+                    itemsLines.Add($"Add-on: {addOnName} ({addOnSize})\t{item.AddOnQty}\t${addOnPrice:F2}\t${addOnTotal:F2}");
                 }
             }
 
