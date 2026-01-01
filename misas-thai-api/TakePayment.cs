@@ -68,13 +68,61 @@ namespace misas_thai_api
                 var response = await client.PaymentsApi.CreatePaymentAsync(paymentRequest);
                 if (response.Payment != null && response.Payment.Status == "COMPLETED")
                 {
-                    // Send email notification
-                    await SendOrderConfirmationEmail(orderRequest, response.Payment.Id, log);
+                    // Payment successful - now create order in database
+                    string squarePaymentId = response.Payment.Id;
+                    try
+                    {
+                        // Call CreateOrder API to upsert customer and create order
+                        using var httpClient = new System.Net.Http.HttpClient();
+                        var orderData = new
+                        {
+                            customerName = orderRequest.CustomerName,
+                            customerEmail = orderRequest.CustomerEmail,
+                            customerPhone = orderRequest.CustomerPhone,
+                            consentToUpdates = orderRequest.ConsentToUpdates,
+                            deliveryAddress = orderRequest.DeliveryAddress,
+                            deliveryDate = orderRequest.DeliveryDate,
+                            orderTotal = orderRequest.Total,
+                            tipAmount = orderRequest.TipAmount,
+                            discountAmount = orderRequest.DiscountAmount,
+                            salesTax = orderRequest.SalesTax,
+                            additionalInformation = orderRequest.AdditionalInformation,
+                            paymentToken = squarePaymentId,
+                            discountCode = orderRequest.DiscountCode,
+                            items = orderRequest.Items
+                        };
+                        
+                        var orderJson = JsonConvert.SerializeObject(orderData);
+                        var orderContent = new System.Net.Http.StringContent(orderJson, System.Text.Encoding.UTF8, "application/json");
+                        
+                        // Get the current function's base URL
+                        var functionBaseUrl = System.Environment.GetEnvironmentVariable("FUNCTION_APP_BASE_URL") ?? "http://localhost:7071/api";
+                        var orderResponse = await httpClient.PostAsync($"{functionBaseUrl}/orders", orderContent);
+                        
+                        if (orderResponse.IsSuccessStatusCode)
+                        {
+                            var orderResult = await orderResponse.Content.ReadAsStringAsync();
+                            var orderResultObj = JsonConvert.DeserializeObject<dynamic>(orderResult);
+                            log.LogInformation($"Order created successfully with Square payment ID: {squarePaymentId}");
+                        }
+                        else
+                        {
+                            var errorContent = await orderResponse.Content.ReadAsStringAsync();
+                            log.LogError($"Failed to create order in database: {errorContent}");
+                        }
+                    }
+                    catch (Exception orderEx)
+                    {
+                        log.LogError(orderEx, "Error creating order in database");
+                    }
+                    
+                    // Send email notification with Square payment ID as order number
+                    await SendOrderConfirmationEmail(orderRequest, squarePaymentId, log);
                     
                     var successResponse = req.CreateResponse(HttpStatusCode.OK);
                     await successResponse.WriteAsJsonAsync(new { 
                         success = true, 
-                        orderNumber = response.Payment.Id, 
+                        orderNumber = squarePaymentId, 
                         message = "Payment processed successfully." 
                     });
                     return successResponse;
@@ -432,6 +480,8 @@ msthaistreetcuisine@gmail.com
             public List<OrderItemRequest> Items { get; set; } = new();
             public decimal TipAmount { get; set; }
             public decimal SalesTax { get; set; }
+            public string? DiscountCode { get; set; }
+            public decimal DiscountAmount { get; set; }
         }
 
         public class OrderItemRequest
