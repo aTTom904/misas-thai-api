@@ -141,7 +141,7 @@ namespace misas_thai_api
                         customerUuid = existingCustomer.Uuid;
                         
                         // Parse existing data or start fresh
-                        CustomerStats currentStats = new CustomerStats { NumberOfOrders = 0, TotalSpent = 0 };
+                        CustomerStats currentStats = new CustomerStats { NumberOfOrders = 0, TotalSpent = 0, LoyaltyRewardAvailable = false };
                         if (!string.IsNullOrWhiteSpace(existingCustomer.Data))
                         {
                             try
@@ -158,8 +158,20 @@ namespace misas_thai_api
                         var updatedStats = new CustomerStats
                         {
                             NumberOfOrders = currentStats.NumberOfOrders + 1,
-                            TotalSpent = currentStats.TotalSpent + input.OrderTotal
+                            TotalSpent = currentStats.TotalSpent + input.OrderTotal,
+                            LoyaltyRewardAvailable = currentStats.LoyaltyRewardAvailable
                         };
+                        
+                        // Check if punch card was redeemed - if so, reset flag
+                        if (input.IsPunchCardRedeemed)
+                        {
+                            updatedStats.LoyaltyRewardAvailable = false;
+                        }
+                        // Otherwise, check if new order count is a multiple of 5
+                        else if (updatedStats.NumberOfOrders % 5 == 0)
+                        {
+                            updatedStats.LoyaltyRewardAvailable = true;
+                        }
                         
                         var dataJson = JsonConvert.SerializeObject(updatedStats);
                         
@@ -193,7 +205,8 @@ namespace misas_thai_api
                         var initialStats = new CustomerStats
                         {
                             NumberOfOrders = 1,
-                            TotalSpent = input.OrderTotal
+                            TotalSpent = input.OrderTotal,
+                            LoyaltyRewardAvailable = false
                         };
                         
                         var dataJson = JsonConvert.SerializeObject(initialStats);
@@ -314,6 +327,7 @@ namespace misas_thai_api
             public string? AdditionalInformation { get; set; }
             public string? PaymentToken { get; set; }
             public string? DiscountCode { get; set; }
+            public bool IsPunchCardRedeemed { get; set; }
             public List<OrderItemData> Items { get; set; } = new();
         }
 
@@ -348,6 +362,9 @@ namespace misas_thai_api
             
             [JsonProperty("total_spent")]
             public decimal TotalSpent { get; set; }
+            
+            [JsonProperty("loyalty_reward_available")]
+            public bool LoyaltyRewardAvailable { get; set; }
         }
 
         private class Order
