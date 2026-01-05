@@ -437,6 +437,101 @@ namespace misas_thai_api
             }
         }
 
+        [Function("CheckPunchCard")]
+        public static async Task<HttpResponseData> CheckPunchCard(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "discount-codes/punch-card/check")] HttpRequestData req,
+            FunctionContext ctx)
+        {
+            var log = ctx.GetLogger("CheckPunchCard");
+            try
+            {
+                var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
+                var email = query["email"];
+                var phone = query["phone"];
+
+                log.LogInformation($"CheckPunchCard called for email: {email}, phone: {phone}");
+
+                if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone))
+                {
+                    log.LogWarning("CheckPunchCard failed: Missing email or phone");
+                    var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await bad.WriteStringAsync("{\"error\":\"Email and phone are required\"}");
+                    return bad;
+                }
+
+                using var conn = Database.GetOpenConnection();
+                
+                // Try to find customer by email and phone
+                log.LogInformation("Attempting to find customer by email and phone");
+                var customer = await conn.QueryFirstOrDefaultAsync<CustomerRecord>(
+                    "SELECT id, uuid, name, email, phone, data FROM dbo.customers WHERE email = @Email AND phone = @Phone",
+                    new { Email = email, Phone = phone });
+
+                // If not found, try email only
+                if (customer == null)
+                {
+                    log.LogInformation("Customer not found by email+phone, trying email only");
+                    customer = await conn.QueryFirstOrDefaultAsync<CustomerRecord>(
+                        "SELECT id, uuid, name, email, phone, data FROM dbo.customers WHERE email = @Email",
+                        new { Email = email });
+                }
+
+                // If still not found, try phone only
+                if (customer == null)
+                {
+                    log.LogInformation("Customer not found by email, trying phone only");
+                    customer = await conn.QueryFirstOrDefaultAsync<CustomerRecord>(
+                        "SELECT id, uuid, name, email, phone, data FROM dbo.customers WHERE phone = @Phone",
+                        new { Phone = phone });
+                }
+
+                // Default values for new customers
+                int numberOfOrders = 0;
+                bool isEligible = false;
+
+                if (customer != null && !string.IsNullOrWhiteSpace(customer.Data))
+                {
+                    log.LogInformation($"Customer found (ID: {customer.Id}), parsing stats");
+                    var customerStats = JsonConvert.DeserializeObject<CustomerStats>(customer.Data);
+                    if (customerStats != null)
+                    {
+                        numberOfOrders = customerStats.NumberOfOrders;
+                        isEligible = customerStats.LoyaltyRewardAvailable;
+                        log.LogInformation($"Customer stats - Orders: {numberOfOrders}, Eligible: {isEligible}");
+                    }
+                    else
+                    {
+                        log.LogWarning($"Failed to deserialize customer stats for customer {customer.Id}");
+                    }
+                }
+                else
+                {
+                    log.LogInformation("New customer or customer data is empty - returning default values");
+                }
+
+                int ordersUntilNext = 5 - (numberOfOrders % 5);
+
+                log.LogInformation($"Returning punch card status - Orders: {numberOfOrders}, Eligible: {isEligible}, Until Next: {ordersUntilNext}");
+
+                var res = req.CreateResponse(HttpStatusCode.OK);
+                res.Headers.Add("Content-Type", "application/json");
+                await res.WriteStringAsync(JsonConvert.SerializeObject(new
+                {
+                    numberOfOrders = numberOfOrders,
+                    isEligible = isEligible,
+                    ordersUntilNext = ordersUntilNext
+                }));
+                return res;
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Error checking punch card");
+                var res = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await res.WriteStringAsync("{\"error\":\"Server error\"}");
+                return res;
+            }
+        }
+
         private class DiscountCode
         {
             public int Id { get; set; }
@@ -447,6 +542,28 @@ namespace misas_thai_api
             public DateTime ExpiresDttm { get; set; }
             public DateTime CreatedDttm { get; set; }
             public DateTime UpdatedDttm { get; set; }
+        }
+
+        private class CustomerRecord
+        {
+            public int Id { get; set; }
+            public Guid Uuid { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string Phone { get; set; } = string.Empty;
+            public string Data { get; set; } = string.Empty;
+        }
+
+        private class CustomerStats
+        {
+            [JsonProperty("number_of_orders")]
+            public int NumberOfOrders { get; set; }
+            
+            [JsonProperty("total_spent")]
+            public decimal TotalSpent { get; set; }
+            
+            [JsonProperty("loyalty_reward_available")]
+            public bool LoyaltyRewardAvailable { get; set; }
         }
 
         private class DiscountCodeData
