@@ -246,13 +246,13 @@ namespace misas_thai_api
                 itemsHtml += $"<tr><td>{item.ItemName}{servesText}{sizeText}</td><td>{item.Quantity}</td><td>${item.Price:F2}</td><td>${(item.Price * item.Quantity):F2}</td></tr>";
                 if (item.UpgradePhadThai48Qty > 0)
                 {
-                    var upgrade48Price = 18m;
+                    var upgrade48Price = 24m;
                     var upgrade48Total = item.UpgradePhadThai48Qty * upgrade48Price;
                     itemsHtml += $"<tr><td>Upgrade: Pad Thai (48 oz)</td><td>{item.UpgradePhadThai48Qty}</td><td>${upgrade48Price:F2}</td><td>${upgrade48Total:F2}</td></tr>";
                 }
                 if (item.UpgradePhadThai24Qty > 0)
                 {
-                    var upgrade24Price = 9m;
+                    var upgrade24Price = 12m;
                     var upgrade24Total = item.UpgradePhadThai24Qty * upgrade24Price;
                     itemsHtml += $"<tr><td>Upgrade: Pad Thai (24 oz)</td><td>{item.UpgradePhadThai24Qty}</td><td>${upgrade24Price:F2}</td><td>${upgrade24Total:F2}</td></tr>";
                 }
