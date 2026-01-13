@@ -96,7 +96,7 @@ namespace misas_thai_api
                         var orderContent = new System.Net.Http.StringContent(orderJson, System.Text.Encoding.UTF8, "application/json");
                         
                         // Get the current function's base URL
-                        var functionBaseUrl = System.Environment.GetEnvironmentVariable("FUNCTION_APP_BASE_URL") ?? "http://localhost:7071/api";
+                        var functionBaseUrl = System.Environment.GetEnvironmentVariable("Api__BaseUrl");
                         var orderResponse = await httpClient.PostAsync($"{functionBaseUrl}/orders", orderContent);
                         
                         if (orderResponse.IsSuccessStatusCode)
